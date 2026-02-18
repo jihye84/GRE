@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GRE Vital 3000 📝</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700&family=Nanum+Gothic:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f7f9;
+            --card-bg: #ffffff;
+            --primary: #a7bbc7;
+            --accent: #607d8b;
+            --text-color: #333;
+            --btn-bg: #f8f9fa;
+            --radical-color: #e67e22;
+        }
+
+        body {
+            font-family: 'Nanum Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #game-container {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
+            width: 95%;
+            max-width: 450px;
+            height: 90vh;
+            /* Fixed height to prevent movement */
+            max-height: 800px;
+            /* Cap height on large screens */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: center;
+            border: 4px solid #fff;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+            /* Prevent scrolling inside card */
+        }
+
+        .home-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            z-index: 100;
+        }
+
+        .mode-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            background: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        #word-display-container {
+            position: relative;
+            flex-grow: 1;
+            flex-shrink: 1;
+            /* Allow shrinking to make room for feedback */
+            min-height: 0;
+            /* Essential for flex shrinking */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #word-display {
+            font-family: 'Times New Roman', serif;
+            font-size: clamp(30px, 8vw, 60px);
+            font-weight: 700;
+            color: #2c3e50;
+            cursor: pointer;
+            user-select: none;
+            line-height: 1.2;
+            text-transform: lowercase;
+            word-wrap: break-word;
+            padding: 0 10px;
+        }
+
+        #radical-badge {
+            position: absolute;
+            top: 5%;
+            right: 5%;
+            background: #fdfdfd;
+            border: 1px solid #eee;
+            padding: 5px;
+            border-radius: 10px;
+            min-width: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        #radical-han {
+            font-size: 20px;
+            color: var(--radical-color);
+            font-weight: bold;
+        }
+
+        #radical-kor {
+            font-size: 10px;
+            color: #95a5a6;
+            margin-top: 2px;
+            font-weight: bold;
+        }
+
+        #speak-btn {
+            position: absolute;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: none;
+            border: none;
+            font-size: 40px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            z-index: 10;
+            opacity: 0.8;
+        }
+
+        #speak-btn:active {
+            transform: translateX(-50%) scale(0.9);
+        }
+
+        #feedback-area {
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        #feedback {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        #example-display {
+            margin-top: 8px;
+            font-size: 15px;
+            color: #555;
+            word-break: keep-all;
+            line-height: 1.4;
+            background-color: #f9f9f9;
+            padding: 8px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .correct {
+            color: #2e7d32;
+        }
+
+        .incorrect {
+            color: #c62828;
+        }
+
+        #next-btn {
+            background: var(--primary);
+            font-size: 14px;
+            padding: 8px 24px;
+            border-radius: 50px;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            visibility: hidden;
+            box-shadow: 0 3px 0px #8e9fa9;
+            margin-top: 5px;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(2, 1fr);
+            margin-bottom: 10px;
+        }
+
+        button.option-btn {
+            font-family: 'Nanum Gothic', sans-serif;
+            padding: 12px 4px;
+            font-size: 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 15px;
+            background: var(--btn-bg);
+            box-shadow: 0 3px 0px #eee;
+            transition: all 0.1s;
+        }
+
+        button.option-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .btn-correct {
+            background-color: #2196F3 !important;
+            color: white !important;
+        }
+
+        .btn-wrong {
+            background-color: #f44336 !important;
+            color: white !important;
+        }
+
+        .btn-answer {
+            background-color: #4CAF50 !important;
+            color: white !important;
+        }
+
+        #score-display {
+            font-size: 12px;
+            color: #aaa;
+            background: #fff;
+            padding: 8px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-around;
+            border: 1px solid #f0f0f0;
+            margin-top: auto;
+            /* Push to bottom */
+        }
+
+        .result-screen {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .action-btn {
+            color: white;
+            font-weight: bold;
+            margin-top: 10px;
+            width: 100%;
+            padding: 14px;
+            border-radius: 18px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button onclick="location.reload();" class="home-btn">🏠</button>
+
+    <div id="game-container">
+        <div id="quiz-screen" style="height:100%; display:flex; flex-direction:column;">
+            <div>
+                <div id="mode-indicator" class="mode-badge">학습 모드 ✨</div>
+            </div>
+            <div id="word-display-container">
+                <div id="radical-badge"><span id="radical-han">?</span></div>
+                <div id="word-display">...</div>
+                <button id="speak-btn">🔊</button>
+            </div>
+            <div id="feedback-area">
+                <div id="feedback"></div>
+                <button id="next-btn" onclick="goToNextQuestion()">다음 문제 ❯</button>
+            </div>
+            <div id="options" class="options-grid"></div>
+            <div id="score-display">
+                <span>📝 <span id="current-q-num">1</span>/10</span>
+                <span>⭐ <span id="correct-q-num">0</span></span>
+            </div>
+        </div>
+
+        <div id="result-screen" class="result-screen">
+            <span style="font-size: 50px;">🎖️</span>
+            <h2>평가 완료!</h2>
+            <p id="result-stats" style="font-size: 20px; color: #777; margin: 10px 0;"></p>
+            <button onclick="startGame()" class="action-btn" style="background:#607d8b;">✨ 새로운 10문제</button>
+            <button id="retry-failed-btn" onclick="startRetryMode()" class="action-btn"
+                style="background:var(--primary);">🔁 틀린 문제 복습</button>
+        </div>
+    </div>
+
+    <script src="word_data.js"></script>
+    <script>
+        let currentQuizSet = [], currentIdx = 0, correctCount = 0, failedQuestions = [], isReviewMode = false;
+
+        function speak(text, lang = 'ko-KR') {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function startGame() {
+            isReviewMode = false; failedQuestions = [];
+            // hanja_data.js에서 불러온 hanjaData 사용
+            currentQuizSet = [...hanjaData].sort(() => Math.random() - 0.5).slice(0, 10);
+            resetState();
+        }
+
+        function startRetryMode() {
+            isReviewMode = true;
+            currentQuizSet = [...failedQuestions].sort(() => Math.random() - 0.5);
+            failedQuestions = [];
+            resetState();
+        }
+
+        function resetState() {
+            currentIdx = 0; correctCount = 0;
+            document.getElementById('mode-indicator').innerText = isReviewMode ? "복습 모드 🔁" : "학습 모드 ✨";
+            document.getElementById('quiz-screen').style.display = 'flex';
+            document.getElementById('result-screen').style.display = 'none';
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            if (currentIdx >= currentQuizSet.length) { showResult(); return; }
+            const q = currentQuizSet[currentIdx];
+            document.getElementById('word-display').innerText = q.h;
+            // Removed click-to-speak from the word itself to avoid accidental clicks, 
+            // or we can keep it. User asked for a button. Passing handler to button below.
+            // document.getElementById('word-display').onclick = () => speak(q.h, 'en-US'); 
+
+            document.getElementById('speak-btn').onclick = (e) => {
+                e.stopPropagation();
+                speak(q.h, 'en-US');
+            };
+            document.getElementById('radical-han').innerText = q.rh;
+            document.getElementById('current-q-num').innerText = currentIdx + 1;
+            document.getElementById('correct-q-num').innerText = correctCount;
+            document.getElementById('feedback').innerText = "";
+            document.getElementById('next-btn').style.visibility = 'hidden';
+
+            let options = [q.m];
+            let others = hanjaData.filter(item => item.m !== q.m).sort(() => Math.random() - 0.5);
+            for (let i = 0; i < 3; i++) { if (others[i]) options.push(others[i].m); }
+            options.sort(() => Math.random() - 0.5);
+
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = "";
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+                    if (opt === q.m) {
+                        document.getElementById('feedback').innerHTML = "<span class='correct'>⭕ 정답!</span>";
+                        correctCount++;
+                        btn.classList.add('btn-correct');
+                    } else {
+                        document.getElementById('feedback').innerHTML = `<span class='incorrect'>❌ 정답: ${q.m}</span>`;
+                        if (!failedQuestions.some(f => f.h === q.h)) failedQuestions.push(q);
+                        btn.classList.add('btn-wrong');
+                        document.querySelectorAll('.option-btn').forEach(b => {
+                            if (b.innerText === q.m) b.classList.add('btn-answer');
+                        });
+                    }
+                    speak(q.h, 'en-US');
+
+                    // Show example usage if available
+                    if (q.examples) {
+                        const exampleDiv = document.createElement('div');
+                        exampleDiv.id = 'example-display';
+                        exampleDiv.innerHTML = `💡 <b>Info:</b> ${q.examples}`;
+                        document.getElementById('feedback').appendChild(exampleDiv);
+                    }
+
+                    document.getElementById('next-btn').style.visibility = 'visible';
+                };
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        function goToNextQuestion() { currentIdx++; renderQuestion(); }
+        function showResult() {
+            document.getElementById('quiz-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'flex';
+            document.getElementById('result-stats').innerText = `${currentQuizSet.length}문제 중 ${correctCount}개 정답!`;
+            document.getElementById('retry-failed-btn').style.display = failedQuestions.length > 0 ? 'block' : 'none';
+        }
+
+        window.onload = startGame;
+    </script>
+</body>
+
+</html>
